@@ -99,3 +99,63 @@ function fillAllTilesWithValues() {
 }
 
 // fillAllTilesWithValues(); // for testing, you can un comment this if you want
+
+// get the board current state
+function getBoardState() {
+    const cells = document.querySelectorAll('.grid-cell');
+    const boardState = [];
+    cells.forEach(cell => {
+        const value = parseInt(cell.textContent) || 0;
+        const rowCol = cell.id.split('-').slice(1).map(Number);
+        if (!boardState[rowCol[0]]) {
+            boardState[rowCol[0]] = [];
+        }
+        boardState[rowCol[0]][rowCol[1]] = value;
+    });
+    return boardState;
+}
+
+// handles the input
+function handleInput(event) {
+    const key = event.key;
+    if (key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight') {
+        event.preventDefault();
+        console.log(`Input received: ${key}`);
+    }
+}
+
+// the phone touching inmplementation
+let startX, startY;
+
+document.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+});
+
+document.addEventListener('touchend', e => {
+    if (!startX || !startY) return;
+    
+    let endX = e.changedTouches[0].clientX;
+    let endY = e.changedTouches[0].clientY;
+    
+    let diffX = startX - endX;
+    let diffY = startY - endY;
+    
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX > 0) {
+            handleInput({key: 'ArrowLeft', preventDefault: () => {}});
+        } else {
+            handleInput({key: 'ArrowRight', preventDefault: () => {}});
+        }
+    } else {
+        if (diffY > 0) {
+            handleInput({key: 'ArrowUp', preventDefault: () => {}});
+        } else {
+            handleInput({key: 'ArrowDown', preventDefault: () => {}});
+        }
+    }
+    startX = startY = null;
+});
+
+// check the input
+document.addEventListener('keydown', handleInput);
