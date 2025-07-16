@@ -1,0 +1,22 @@
+.grid-container {
+    display: grid;
+    margin: 10px auto;
+    padding: 8px;
+    background-color: #bbada0;
+    border-radius: 6px;
+    width: fit-content;
+    justify-self: center;
+    max-width: 90vw;
+    max-height: 60vh;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.grid-cell {
+    background: rgba(238, 228, 218, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border-radius: 3px;
+}
