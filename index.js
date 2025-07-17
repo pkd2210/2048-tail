@@ -95,7 +95,20 @@ function spawnInitialBlocks() {
     }
 }
 
-spawnInitialBlocks();
+if (document.cookie.includes("boardStat")) {
+    const cookieValue = document.cookie.split("boardStat=")[1].split(";")[0];
+    const boardState = JSON.parse(cookieValue);
+    cells.forEach((cell, index) => {
+        const row = Math.floor(index / colSize);
+        const col = index % colSize;
+        const value = boardState[row][col];
+        cell.textContent = value || "";
+        applyCellStyle(cell, value);
+    });
+}
+else {
+    spawnInitialBlocks();
+}
 
 // test function to summon tiles
 function fillAllTilesWithValues() {
@@ -169,7 +182,9 @@ function moveUp() {
         });
         
         spawnRandomBlock();
-        document.cookie = `boardStat=${JSON.stringify(newState)}; path=/; max-age=1000000000`;
+        
+        const finalState = getBoardState();
+        document.cookie = `boardStat=${JSON.stringify(finalState)}; path=/; max-age=1000000000`;
     }
 }
 
@@ -207,7 +222,9 @@ function moveDown() {
         });
         
         spawnRandomBlock();
-        document.cookie = `boardStat=${JSON.stringify(newState)}; path=/; max-age=1000000000`;
+        
+        const finalState = getBoardState();
+        document.cookie = `boardStat=${JSON.stringify(finalState)}; path=/; max-age=1000000000`;
     }
 }
 // move the tiles to each side, (its calculate the new board and then place it)
@@ -245,7 +262,9 @@ function moveLeft() {
         });
         
         spawnRandomBlock();
-        document.cookie = `boardStat=${JSON.stringify(newState)}; path=/; max-age=1000000000`;
+        
+        const finalState = getBoardState();
+        document.cookie = `boardStat=${JSON.stringify(finalState)}; path=/; max-age=1000000000`;
     }
 }
 
@@ -283,7 +302,9 @@ function moveRight() {
         });
         
         spawnRandomBlock();
-        document.cookie = `boardStat=${JSON.stringify(newState)}; path=/; max-age=1000000000`;
+        
+        const finalState = getBoardState();
+        document.cookie = `boardStat=${JSON.stringify(finalState)}; path=/; max-age=1000000000`;
     }
 }
 
