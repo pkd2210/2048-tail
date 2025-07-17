@@ -122,7 +122,6 @@ function getBoardState() {
         }
         boardState[rowCol[0]][rowCol[1]] = value;
     });
-    document.cookie = `boardStat=${JSON.stringify(boardState)}; path=/; max-age=1000000000`;
     return boardState;
 }
 
@@ -170,6 +169,7 @@ function moveUp() {
         });
         
         spawnRandomBlock();
+        document.cookie = `boardStat=${JSON.stringify(newState)}; path=/; max-age=1000000000`;
     }
 }
 
@@ -207,6 +207,7 @@ function moveDown() {
         });
         
         spawnRandomBlock();
+        document.cookie = `boardStat=${JSON.stringify(newState)}; path=/; max-age=1000000000`;
     }
 }
 // move the tiles to each side, (its calculate the new board and then place it)
@@ -244,6 +245,7 @@ function moveLeft() {
         });
         
         spawnRandomBlock();
+        document.cookie = `boardStat=${JSON.stringify(newState)}; path=/; max-age=1000000000`;
     }
 }
 
@@ -281,6 +283,7 @@ function moveRight() {
         });
         
         spawnRandomBlock();
+        document.cookie = `boardStat=${JSON.stringify(newState)}; path=/; max-age=1000000000`;
     }
 }
 
