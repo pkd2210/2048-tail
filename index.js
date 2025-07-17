@@ -1,17 +1,27 @@
 const gridContainer = document.querySelector('.grid-container');
 
-const gridSize = 5;
+const spawnChance = 0.9; // this if the chance that a 2 will spawn instted of a 4 (0.9 = 90% for spawning a 2 tile, and a 10% to spawn a four)
+const colSize = 5;
+const rowSize = 5;
 
-const containerPadding = 16;
-const maxAvailableWidth = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.6, 600) - containerPadding;
-const gapSize = Math.max(1, Math.min(4, maxAvailableWidth / (gridSize * 8)));
-const totalGapWidth = gapSize * (gridSize - 1);
-const cellSize = (maxAvailableWidth - totalGapWidth) / gridSize;
+const padding = 16; // add padding, so that small screens will fit the grid better
+const maxAvailableWidth = Math.min(window.innerWidth * 0.9, 600) - padding;
+const maxAvailableHeight = Math.min(window.innerHeight * 0.6, 600) - padding;
+
+const gapSize = Math.max(1, Math.min(4, Math.min(maxAvailableWidth / (colSize * 8), maxAvailableHeight / (rowSize * 8))));
+const totalGapWidth = gapSize * (colSize - 1);
+const totalGapHeight = gapSize * (rowSize - 1);
+
+const cellSize = Math.min(
+    (maxAvailableWidth - totalGapWidth) / colSize,
+    (maxAvailableHeight - totalGapHeight) / rowSize
+);
+
 const fontSize = Math.max(8, cellSize * 0.3);
 
 // making the grid loop
-for (let row = 0; row < gridSize; row++) {
-    for (let col = 0; col < gridSize; col++) {
+for (let row = 0; row < rowSize; row++) {
+    for (let col = 0; col < colSize; col++) {
         const cell = document.createElement('div');
         cell.id = `cell-${row}-${col}`;
         cell.className = 'grid-cell';
@@ -19,8 +29,8 @@ for (let row = 0; row < gridSize; row++) {
         gridContainer.appendChild(cell);
     }
 }
-gridContainer.style.gridTemplateColumns = `repeat(${gridSize}, ${cellSize}px)`;
-gridContainer.style.gridTemplateRows = `repeat(${gridSize}, ${cellSize}px)`;
+gridContainer.style.gridTemplateColumns = `repeat(${colSize}, ${cellSize}px)`;
+gridContainer.style.gridTemplateRows = `repeat(${rowSize}, ${cellSize}px)`;
 gridContainer.style.gap = `${gapSize}px`;
 
 const cells = document.querySelectorAll('.grid-cell');
@@ -30,6 +40,7 @@ cells.forEach(cell => {
 
 // choosing the styles for all the values
 const valueStyles = {
+    0: { backgroundColor: '#cdc1b4', color: '#776e65' },
     1: { backgroundColor: '#eee4da', color: '#776e65' },
     2: { backgroundColor: '#ede0c8', color: '#776e65' },
     4: { backgroundColor: '#f2b179', color: '#f9f6f2' },
@@ -66,19 +77,18 @@ function spawnRandomBlock() {
     const emptyCells = getEmptyCells();
     
     if (emptyCells.length === 0) {
-        // if theres no empty cells
         return; 
     }
     
     const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-    const randomValue = Math.random() < 0.5 ? 2 : 4;
+    const randomValue = Math.random() < spawnChance ? 2 : 4;
     randomCell.textContent = randomValue;
     
     applyCellStyle(randomCell, randomValue);
 }
 
 function spawnInitialBlocks() {
-    const numberOfBlocks = Math.random() < 0.5 ? 1 : 2;
+    const numberOfBlocks = Math.random() < spawnChance ? 1 : 2;
     
     for (let i = 0; i < numberOfBlocks; i++) {
         spawnRandomBlock();
@@ -98,7 +108,7 @@ function fillAllTilesWithValues() {
     });
 }
 
-// fillAllTilesWithValues(); // for testing, you can un comment this if you want
+ //fillAllTilesWithValues(); // for testing, you can un comment this if you want
 
 // get the board current state
 function getBoardState() {
@@ -112,15 +122,185 @@ function getBoardState() {
         }
         boardState[rowCol[0]][rowCol[1]] = value;
     });
+    document.cookie = `boardStat=${JSON.stringify(boardState)}; path=/; max-age=1000000000`;
     return boardState;
 }
 
-// handles the input
+function merge(array) {
+    for (let i = 0; i < array.length - 1; i++) {
+        if (array[i] === array[i + 1]) {
+            array[i] *= 2;
+            array[i + 1] = 0;
+        }
+    }
+    return array.filter(val => val !== 0);
+}
+
+function moveUp() {
+    const boardState = getBoardState();
+    const newState = JSON.parse(JSON.stringify(boardState));
+    let moved = false;
+    
+    for (let col = 0; col < colSize; col++) {
+        let column = [];
+        for (let row = 0; row < rowSize; row++) {
+            if (boardState[row][col] !== 0) {
+                column.push(boardState[row][col]);
+            }
+        }
+        
+        column = merge(column);
+        
+        for (let row = 0; row < rowSize; row++) {
+            const newValue = column[row] || 0;
+            newState[row][col] = newValue;
+            if (newValue !== boardState[row][col]) {
+                moved = true;
+            }
+        }
+    }
+    
+    if (moved) {
+        cells.forEach((cell, index) => {
+            const row = Math.floor(index / colSize);
+            const col = index % colSize;
+            const value = newState[row][col];
+            cell.textContent = value || "";
+            applyCellStyle(cell, value);
+        });
+        
+        spawnRandomBlock();
+    }
+}
+
+function moveDown() {
+    const boardState = getBoardState();
+    const newState = JSON.parse(JSON.stringify(boardState));
+    let moved = false;
+    
+    for (let col = 0; col < colSize; col++) {
+        let column = [];
+        for (let row = rowSize - 1; row >= 0; row--) {
+            if (boardState[row][col] !== 0) {
+                column.push(boardState[row][col]);
+            }
+        }
+        
+        column = merge(column);
+
+        for (let row = 0; row < rowSize; row++) {
+            const newValue = column[row] || 0;
+            newState[rowSize - 1 - row][col] = newValue;
+            if (newValue !== boardState[rowSize - 1 - row][col]) {
+                moved = true;
+            }
+        }
+    }
+    
+    if (moved) {
+        cells.forEach((cell, index) => {
+            const row = Math.floor(index / colSize);
+            const col = index % colSize;
+            const value = newState[row][col];
+            cell.textContent = value || "";
+            applyCellStyle(cell, value);
+        });
+        
+        spawnRandomBlock();
+    }
+}
+// move the tiles to each side, (its calculate the new board and then place it)
+function moveLeft() {
+    const boardState = getBoardState();
+    const newState = JSON.parse(JSON.stringify(boardState));
+    let moved = false;
+    
+    for (let row = 0; row < rowSize; row++) {
+        let rows = [];
+        for (let col = 0; col < colSize; col++) {
+            if (boardState[row][col] !== 0) {
+                rows.push(boardState[row][col]);
+            }
+        }
+        
+        rows = merge(rows);
+
+        for (let col = 0; col < colSize; col++) {
+            const newValue = rows[col] || 0;
+            newState[row][col] = newValue;
+            if (newValue !== boardState[row][col]) {
+                moved = true;
+            }
+        }
+    }
+    
+    if (moved) {
+        cells.forEach((cell, index) => {
+            const row = Math.floor(index / colSize);
+            const col = index % colSize;
+            const value = newState[row][col];
+            cell.textContent = value || "";
+            applyCellStyle(cell, value);
+        });
+        
+        spawnRandomBlock();
+    }
+}
+
+function moveRight() {
+    const boardState = getBoardState();
+    const newState = JSON.parse(JSON.stringify(boardState));
+    let moved = false;
+    
+    for (let row = 0; row < rowSize; row++) {
+        let rows = [];
+        for (let col = colSize - 1; col >= 0; col--) {
+            if (boardState[row][col] !== 0) {
+                rows.push(boardState[row][col]);
+            }
+        }
+        
+        rows = merge(rows);
+
+        for (let col = 0; col < colSize; col++) {
+            const newValue = rows[col] || 0;
+            newState[row][colSize - 1 - col] = newValue;
+            if (newValue !== boardState[row][colSize - 1 - col]) {
+                moved = true;
+            }
+        }
+    }
+    
+    if (moved) {
+        cells.forEach((cell, index) => {
+            const row = Math.floor(index / colSize);
+            const col = index % colSize;
+            const value = newState[row][col];
+            cell.textContent = value || "";
+            applyCellStyle(cell, value);
+        });
+        
+        spawnRandomBlock();
+    }
+}
+
 function handleInput(event) {
     const key = event.key;
     if (key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight') {
         event.preventDefault();
         console.log(`Input received: ${key}`);
+        if (key === 'ArrowUp') {
+            moveUp();
+        }
+        if (key === 'ArrowDown') {
+            moveDown();
+        }
+        if (key === 'ArrowLeft') {
+            moveLeft();
+        }
+        if (key === 'ArrowRight') {
+            moveRight();
+        }
     }
 }
 
