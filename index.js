@@ -4,7 +4,7 @@ const spawnChance = 0.9; // this if the chance that a 2 will spawn instted of a 
 const deafaulyColSize = 3;
 const defaultRowSize = 3;
 
-let points = 0; // should remain 0 cause this is the points of the game (i gurss you can change it if you want)
+let points = parseInt(document.cookie.split("points=")[1]?.split(";")[0]) || 0; // should remain 0 cause this is the points of the game (i gurss you can change it if you want)
 
 const colSize = parseInt(document.cookie.split("colSize=")[1]?.split(";")[0]) || deafaulyColSize;
 const rowSize = parseInt(document.cookie.split("rowSize=")[1]?.split(";")[0]) || defaultRowSize;
@@ -69,6 +69,7 @@ function restartGame() {
     document.cookie = `boardStat=; path=/; max-age=0`;
     document.cookie = `colSize=; path=/; max-age=0`;
     document.cookie = `rowSize=; path=/; max-age=0`;
+    document.cookie = `points=; path=/; max-age=0`;
     location.reload();
 }
 function saveGame() {
@@ -155,8 +156,15 @@ function getBoardState() {
     return boardState;
 }
 
+function updateRowColText() {
+    document.getElementById('rowColText').textContent = `Rows: ${rowSize}, Columns: ${colSize}`;
+}
+
+updateRowColText();
+
 function updatePoints() {
     document.getElementById('points').textContent = 'Points: ' + points;
+    document.cookie = `points=${points}; path=/; max-age=1000000000`;
     updateHighscore();
 }
 
@@ -181,6 +189,7 @@ function merge(array) {
     }
     points += newPoints;
     updatePoints();
+    updateRowColText();
     return array.filter(val => val !== 0);
 }
 
