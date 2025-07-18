@@ -20,3 +20,8 @@
     font-weight: bold;
     border-radius: 3px;
 }
+
+body {
+  overscroll-behavior-y: contain;
+  overflow: hidden;
+}

@@ -454,7 +454,6 @@ window.addEventListener('touchmove', function(e) {
         e.preventDefault();
     }
 }, { passive: false });
-document.body.style.overflow = 'hidden';
 
 document.addEventListener('keydown', handleInput);
 updatePoints();
