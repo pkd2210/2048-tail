@@ -1,8 +1,11 @@
 const gridContainer = document.querySelector('.grid-container');
 
 const spawnChance = 0.9; // this if the chance that a 2 will spawn instted of a 4 (0.9 = 90% for spawning a 2 tile, and a 10% to spawn a four)
-const colSize = 5;
-const rowSize = 5;
+const deafaulyColSize = 3;
+const defaultRowSize = 3;
+
+const colSize = parseInt(document.cookie.split("colSize=")[1]?.split(";")[0]) || deafaulyColSize;
+const rowSize = parseInt(document.cookie.split("rowSize=")[1]?.split(";")[0]) || defaultRowSize;
 
 const padding = 16; // add padding, so that small screens will fit the grid better
 const maxAvailableWidth = Math.min(window.innerWidth * 0.9, 600) - padding;
@@ -60,6 +63,18 @@ const valueStyles = {
     other: { backgroundColor: '#3c3a32', color: '#f9f6f2' }
 };
 
+function restartGame() {
+    document.cookie = `boardStat=; path=/; max-age=0`;
+    document.cookie = `colSize=; path=/; max-age=0`;
+    document.cookie = `rowSize=; path=/; max-age=0`;
+    location.reload();
+}
+function saveGame() {
+    const finalState = getBoardState();
+    document.cookie = `boardStat=${JSON.stringify(finalState)}; path=/; max-age=1000000000`;
+    document.cookie = `colSize=${colSize}; path=/; max-age=1000000000`
+    document.cookie = `rowSize=${rowSize}; path=/; max-age=1000000000`
+}
 function getEmptyCells() {
     const cells = document.querySelectorAll('.grid-cell');
     return Array.from(cells).filter(cell => cell.textContent === "");
@@ -182,9 +197,7 @@ function moveUp() {
         });
         
         spawnRandomBlock();
-        
-        const finalState = getBoardState();
-        document.cookie = `boardStat=${JSON.stringify(finalState)}; path=/; max-age=1000000000`;
+        saveGame();
     }
 }
 
@@ -222,9 +235,7 @@ function moveDown() {
         });
         
         spawnRandomBlock();
-        
-        const finalState = getBoardState();
-        document.cookie = `boardStat=${JSON.stringify(finalState)}; path=/; max-age=1000000000`;
+        saveGame();
     }
 }
 // move the tiles to each side, (its calculate the new board and then place it)
@@ -262,9 +273,7 @@ function moveLeft() {
         });
         
         spawnRandomBlock();
-        
-        const finalState = getBoardState();
-        document.cookie = `boardStat=${JSON.stringify(finalState)}; path=/; max-age=1000000000`;
+        saveGame();
     }
 }
 
@@ -302,9 +311,7 @@ function moveRight() {
         });
         
         spawnRandomBlock();
-        
-        const finalState = getBoardState();
-        document.cookie = `boardStat=${JSON.stringify(finalState)}; path=/; max-age=1000000000`;
+        saveGame();
     }
 }
 
