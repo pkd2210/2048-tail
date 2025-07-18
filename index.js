@@ -4,10 +4,13 @@ const spawnChance = 0.9; // this if the chance that a 2 will spawn instted of a 
 const deafaulyColSize = 3;
 const defaultRowSize = 3;
 
+let tilesAdded = false;
 let points = parseInt(document.cookie.split("points=")[1]?.split(";")[0]) || 0; // should remain 0 cause this is the points of the game (i gurss you can change it if you want)
 
-const colSize = parseInt(document.cookie.split("colSize=")[1]?.split(";")[0]) || deafaulyColSize;
-const rowSize = parseInt(document.cookie.split("rowSize=")[1]?.split(";")[0]) || defaultRowSize;
+let biggetTile = parseInt(document.cookie.split("biggetTile=")[1]?.split(";")[0]) || 0;
+
+let colSize = parseInt(document.cookie.split("colSize=")[1]?.split(";")[0]) || deafaulyColSize;
+let rowSize = parseInt(document.cookie.split("rowSize=")[1]?.split(";")[0]) || defaultRowSize;
 
 const padding = 16; // add padding, so that small screens will fit the grid better
 const maxAvailableWidth = Math.min(window.innerWidth * 0.9, 600) - padding;
@@ -70,6 +73,7 @@ function restartGame() {
     document.cookie = `colSize=; path=/; max-age=0`;
     document.cookie = `rowSize=; path=/; max-age=0`;
     document.cookie = `points=; path=/; max-age=0`;
+    document.cookie = `biggetTile=; path=/; max-age=0`;
     location.reload();
 }
 function saveGame() {
@@ -77,6 +81,24 @@ function saveGame() {
     document.cookie = `boardStat=${JSON.stringify(finalState)}; path=/; max-age=1000000000`;
     document.cookie = `colSize=${colSize}; path=/; max-age=1000000000`
     document.cookie = `rowSize=${rowSize}; path=/; max-age=1000000000`
+}
+function gotUniqueNumber() {
+    let boardState = getBoardState();
+    let newBoardState;
+    if (rowSize <= colSize) {
+        rowSize++;
+        newBoardState = [Array(colSize).fill(0), ...boardState];
+        document.cookie = `boardStat=${JSON.stringify(newBoardState)}; path=/; max-age=1000000000`;
+        document.cookie = `rowSize=${rowSize}; path=/; max-age=1000000000`;
+        document.cookie = `colSize=${colSize}; path=/; max-age=1000000000`;
+    } else {
+        colSize++;
+        newBoardState = boardState.map(row => [0, ...row]);
+        document.cookie = `boardStat=${JSON.stringify(newBoardState)}; path=/; max-age=1000000000`;
+        document.cookie = `colSize=${colSize}; path=/; max-age=1000000000`;
+        document.cookie = `rowSize=${rowSize}; path=/; max-age=1000000000`;
+    }
+    location.reload();
 }
 function getEmptyCells() {
     const cells = document.querySelectorAll('.grid-cell');
@@ -92,6 +114,7 @@ function applyCellStyle(cell, value) {
 }
 
 function spawnRandomBlock() {
+    updateBiggestTile();
     const emptyCells = getEmptyCells();
     
     if (emptyCells.length === 0) {
@@ -104,6 +127,7 @@ function spawnRandomBlock() {
     
     applyCellStyle(randomCell, randomValue);
 }
+
 
 function spawnInitialBlocks() {
     const numberOfBlocks = Math.random() < spawnChance ? 1 : 2;
@@ -119,8 +143,8 @@ if (document.cookie.includes("boardStat")) {
     cells.forEach((cell, index) => {
         const row = Math.floor(index / colSize);
         const col = index % colSize;
-        const value = boardState[row][col];
-        cell.textContent = value || "";
+        const value = boardState[row] && boardState[row][col] !== undefined ? boardState[row][col] : 0;
+        cell.textContent = value === 0 ? "" : value;
         applyCellStyle(cell, value);
     });
 }
@@ -160,13 +184,14 @@ function updateRowColText() {
     document.getElementById('rowColText').textContent = `Rows: ${rowSize}, Columns: ${colSize}`;
 }
 
-updateRowColText();
-
 function updatePoints() {
     document.getElementById('points').textContent = 'Points: ' + points;
     document.cookie = `points=${points}; path=/; max-age=1000000000`;
+    document.getElementById('biggetTile').textContent = 'Biggest Tile: ' + biggetTile;
+    document.cookie = `biggetTile=${biggetTile}; path=/; max-age=1000000000`;
     updateHighscore();
 }
+
 
 function updateHighscore() {
     const highScore = parseInt(document.cookie.split("highScore=")[1]?.split(";")[0]) || 0;
@@ -190,7 +215,32 @@ function merge(array) {
     points += newPoints;
     updatePoints();
     updateRowColText();
+
     return array.filter(val => val !== 0);
+}
+
+function updateBiggestTile() {
+    const allCells = document.querySelectorAll('.grid-cell');
+    const tempBiggetTile = Math.max(...Array.from(allCells).map(cell => parseInt(cell.textContent) || 0));
+    if (tempBiggetTile > biggetTile) {
+        biggetTile = tempBiggetTile;
+        document.cookie = `biggetTile=${biggetTile}; path=/; max-age=1000000000`;
+        const biggetTileElem = document.getElementById('biggetTile');
+        if (biggetTileElem) {
+            biggetTileElem.textContent = 'Biggest Tile: ' + biggetTile;
+        }
+        if (tilesAdded == false) { // changed it that it will only spawn a nre tile every 2 unique number (was too op)
+            tilesAdded = true;
+        } else {
+            tilesAdded = false;
+            gotUniqueNumber();
+        }
+    } else {
+        const biggetTileElem = document.getElementById('biggetTile');
+        if (biggetTileElem) {
+            biggetTileElem.textContent = 'Biggest Tile: ' + biggetTile;
+        }
+    }
 }
 
 function moveUp() {
@@ -224,8 +274,7 @@ function moveUp() {
             const value = newState[row][col];
             cell.textContent = value || "";
             applyCellStyle(cell, value);
-        });
-        
+        });        
         spawnRandomBlock();
         saveGame();
     }
@@ -263,7 +312,6 @@ function moveDown() {
             cell.textContent = value || "";
             applyCellStyle(cell, value);
         });
-        
         spawnRandomBlock();
         saveGame();
     }
@@ -301,7 +349,6 @@ function moveLeft() {
             cell.textContent = value || "";
             applyCellStyle(cell, value);
         });
-        
         spawnRandomBlock();
         saveGame();
     }
@@ -339,7 +386,6 @@ function moveRight() {
             cell.textContent = value || "";
             applyCellStyle(cell, value);
         });
-        
         spawnRandomBlock();
         saveGame();
     }
