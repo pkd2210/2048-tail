@@ -4,6 +4,8 @@ const spawnChance = 0.9; // this if the chance that a 2 will spawn instted of a 
 const deafaulyColSize = 3;
 const defaultRowSize = 3;
 
+let points = 0; // should remain 0 cause this is the points of the game (i gurss you can change it if you want)
+
 const colSize = parseInt(document.cookie.split("colSize=")[1]?.split(";")[0]) || deafaulyColSize;
 const rowSize = parseInt(document.cookie.split("rowSize=")[1]?.split(";")[0]) || defaultRowSize;
 
@@ -153,13 +155,32 @@ function getBoardState() {
     return boardState;
 }
 
+function updatePoints() {
+    document.getElementById('points').textContent = 'Points: ' + points;
+    updateHighscore();
+}
+
+function updateHighscore() {
+    const highScore = parseInt(document.cookie.split("highScore=")[1]?.split(";")[0]) || 0;
+    if (points >= highScore) {
+        document.cookie = `highScore=${points}; path=/; max-age=1000000000`;
+        document.getElementById('highscore').textContent = 'High Score: ' + points;
+    } else {
+        document.getElementById('highscore').textContent = 'High Score: ' + highScore;
+    }
+}
+
 function merge(array) {
+    let newPoints = 0;
     for (let i = 0; i < array.length - 1; i++) {
         if (array[i] === array[i + 1]) {
             array[i] *= 2;
             array[i + 1] = 0;
+            newPoints += array[i];
         }
     }
+    points += newPoints;
+    updatePoints();
     return array.filter(val => val !== 0);
 }
 
@@ -370,3 +391,4 @@ document.addEventListener('touchend', e => {
 
 // check the input
 document.addEventListener('keydown', handleInput);
+updatePoints();
