@@ -445,5 +445,11 @@ document.addEventListener('touchend', e => {
 });
 
 // check the input
+window.addEventListener('touchmove', function(e) { // disable the pull to refresh shit in phone browsers
+    if (window.scrollY === 0 && e.touches[0].clientY > 0) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
 document.addEventListener('keydown', handleInput);
 updatePoints();
