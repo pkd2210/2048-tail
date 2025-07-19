@@ -446,12 +446,18 @@ document.addEventListener('touchend', e => {
 
 window.addEventListener('touchstart', function(e) {
     if (window.scrollY === 0 && e.touches[0].clientY > 0) {
-        e.preventDefault();
+        const touchedElem = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+        if (touchedElem && touchedElem.classList.contains('grid-container')) {
+            e.preventDefault();
+        }
     }
 }, { passive: false });
 window.addEventListener('touchmove', function(e) {
     if (window.scrollY === 0 && e.touches[0].clientY > 0) {
-        e.preventDefault();
+        const touchedElem = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+        if (touchedElem && touchedElem.classList.contains('grid-container')) {
+            e.preventDefault();
+        }
     }
 }, { passive: false });
 
